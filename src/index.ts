@@ -52,51 +52,51 @@ function initPanel(context: PanelExtensionContext): () => void {
     }
     const scale = Math.max(
       Number.MIN_VALUE,
-      Math.min(Math.max(1, w - 80) / (maxX - minX), Math.max(1, h - 80) / (maxY - minY)),
+      Math.min(Math.max(1, w - 80) / (maxY - minY), Math.max(1, h - 80) / (maxX - minX)),
     );
     const cx = (minX + maxX) / 2,
       cy = (minY + maxY) / 2;
-    const sx = (x: number): number => w / 2 + (x - cx) * scale;
-    const sy = (y: number): number => h / 2 - (y - cy) * scale;
+    const sx = (y: number): number => w / 2 - (y - cy) * scale;
+    const sy = (x: number): number => h / 2 - (x - cx) * scale;
     const step = 10 ** Math.ceil(Math.log10(60 / scale));
     ctx.lineWidth = 1;
     ctx.font = "11px monospace";
     for (let x = Math.ceil(minX / step) * step; x <= maxX; x += step) {
       ctx.strokeStyle = x === 0 ? "#64748b" : "#253247";
       ctx.beginPath();
-      ctx.moveTo(sx(x), 0);
-      ctx.lineTo(sx(x), h);
+      ctx.moveTo(0, sy(x));
+      ctx.lineTo(w, sy(x));
       ctx.stroke();
       ctx.fillStyle = "#94a3b8";
-      ctx.fillText(`${Number(x.toPrecision(4))}`, sx(x) + 3, h - 8);
+      ctx.fillText(`X ${Number(x.toPrecision(4))}`, 4, sy(x) - 3);
     }
     for (let y = Math.ceil(minY / step) * step; y <= maxY; y += step) {
       ctx.strokeStyle = y === 0 ? "#64748b" : "#253247";
       ctx.beginPath();
-      ctx.moveTo(0, sy(y));
-      ctx.lineTo(w, sy(y));
+      ctx.moveTo(sx(y), 0);
+      ctx.lineTo(sx(y), h);
       ctx.stroke();
       ctx.fillStyle = "#94a3b8";
-      ctx.fillText(`${Number(y.toPrecision(4))}`, 4, sy(y) - 3);
+      ctx.fillText(`Y ${Number(y.toPrecision(4))}`, sx(y) + 3, h - 8);
     }
     ctx.strokeStyle = "#38bdf8";
     ctx.lineWidth = 2;
     ctx.beginPath();
     trajectory.points.forEach((point, i) => {
       if (i === 0) {
-        ctx.moveTo(sx(point.x), sy(point.y));
+        ctx.moveTo(sx(point.y), sy(point.x));
       } else {
-        ctx.lineTo(sx(point.x), sy(point.y));
+        ctx.lineTo(sx(point.y), sy(point.x));
       }
     });
     if (p) {
-      ctx.lineTo(sx(p.x), sy(p.y));
+      ctx.lineTo(sx(p.y), sy(p.x));
     }
     ctx.stroke();
     if (p) {
       ctx.save();
-      ctx.translate(sx(p.x), sy(p.y));
-      ctx.rotate(-p.yaw);
+      ctx.translate(sx(p.y), sy(p.x));
+      ctx.rotate(-Math.PI / 2 - p.yaw);
       ctx.beginPath();
       ctx.moveTo(15, 0);
       ctx.lineTo(-9, -8);
@@ -108,7 +108,7 @@ function initPanel(context: PanelExtensionContext): () => void {
       ctx.restore();
     }
     ctx.fillStyle = "#e2e8f0";
-    ctx.fillText("+Y ↑   +X →   [m] · 自動フィット", 12, 20);
+    ctx.fillText("+X ↑   +Y ←   [m] · 自動フィット", 12, 20);
   }
   clear.onclick = () => {
     trajectory.clear();
